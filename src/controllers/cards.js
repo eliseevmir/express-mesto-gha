@@ -1,19 +1,20 @@
 const mongoose = require("mongoose");
-const errors = require("../utils/errors");
-
 const Card = require("../models/card");
+const {
+  STATUS_CODE_400,
+  STATUS_CODE_404,
+  STATUS_CODE_500,
+} = require("../utils/constants");
 
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
-      res.send({ cards });
+      return res.send({ cards });
     })
     .catch((err) => {
-      return errors({
-        res,
-        statusCode: 500,
-        message: err.message,
-      });
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
@@ -22,28 +23,29 @@ module.exports.postCard = (req, res) => {
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => {
-      res.send({ card });
+      return res.send({ card });
     })
     .catch((err) => {
-      return errors({
-        res,
-        statusCode: 400,
-        message: "Переданы некорректные данные при создании карточки.",
-      });
+      if (err.name === "ValidationError") {
+        return res.status(STATUS_CODE_400).send({
+          message: "Переданы некорректные данные при создании карточки",
+        });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
-      res.send({ card });
+      return res.send({ card });
     })
     .catch((err) => {
-      return errors({
-        res,
-        statusCode: 404,
-        message: "Карточка не найдена",
-      });
+      return res
+        .status(STATUS_CODE_404)
+        .send({ message: "Карточка с указанным _id не найдена" });
     });
 };
 
@@ -54,14 +56,17 @@ module.exports.putLikeCard = (req, res) => {
     { new: true }
   )
     .then((card) => {
-      res.send({ card });
+      return res.send({ card });
     })
     .catch((err) => {
-      return errors({
-        res,
-        statusCode: 400,
-        message: "Переданы некорректные данные для постановки/снятии лайка.",
-      });
+      if (err.kind === "ObjectId") {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Передан несуществующий _id карточки" });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
@@ -72,13 +77,16 @@ module.exports.putDislikeCard = (req, res) => {
     { new: true }
   )
     .then((card) => {
-      res.send({ card });
+      return res.send({ card });
     })
     .catch((err) => {
-      return errors({
-        res,
-        statusCode: 400,
-        message: "Переданы некорректные данные для постановки/снятии лайка.",
-      });
+      if (err.kind === "ObjectId") {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Передан несуществующий _id карточки" });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };

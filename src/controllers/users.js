@@ -1,17 +1,19 @@
 const User = require("../models/user");
-const errors = require("../utils/errors");
+const {
+  STATUS_CODE_400,
+  STATUS_CODE_404,
+  STATUS_CODE_500,
+} = require("../utils/constants");
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => {
       return res.send({ users });
     })
-    .catch((error) => {
-      return errors({
-        res,
-        statusCode: 404,
-        message: "Пользователи не найдены",
-      });
+    .catch((err) => {
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
@@ -20,13 +22,13 @@ module.exports.getUser = (req, res) => {
     .then((user) => {
       return res.send({ user });
     })
-    .catch((error) => {
-      return errors({
-        error,
-        res,
-        statusCode: 404,
-        message: "Пользователь не найден",
-      });
+    .catch((err) => {
+      if (err.kind === "ObjectId") {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Пользователь по указанному _id не найден" });
+      }
+      return res(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
     });
 };
 
@@ -34,43 +36,73 @@ module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => {
-      return res.send({ user: user });
+      return res.send({ user });
     })
-    .catch((error) => {
-      return errors({
-        res,
-        statusCode: 400,
-        message: "Переданы некорректные данные при создании пользователя",
-      });
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(STATUS_CODE_400).send({
+          message: "Переданы некорректные данные при создании пользователя",
+        });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
 module.exports.patchUser = (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true }
+  )
     .then((user) => {
-      res.send({ user });
+      if (!user) {
+        throw Error("Пользователь с указанным _id не найден");
+      }
+      return res.send({ user });
     })
-    .catch((error) => {
-      return errors({
-        res,
-        statusCode: 500,
-        message: "Переданы некорректные данные при обновлении профиля",
-      });
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(STATUS_CODE_400).send({
+          message: "Переданы некорректные данные при обновлении профиля",
+        });
+      }
+      if (err.name === "Error") {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
 module.exports.patchUserAvatar = (req, res) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true }
+  )
     .then((user) => {
-      res.send({ user: user });
+      if (!user) {
+        throw Error("Пользователь с указанным _id не найден");
+      }
+      return res.send({ user });
     })
-    .catch((error) => {
-      return errors({
-        res,
-        statusCode: 500,
-        message: "Переданы некорректные данные при обновлении аватара",
-      });
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(STATUS_CODE_400).send({
+          message: "Переданы некорректные данные при обновлении аватара",
+        });
+      }
+      if (err.name === "Error") {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
