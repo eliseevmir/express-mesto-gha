@@ -41,7 +41,7 @@ module.exports.getUser = (req, res) => {
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
-  const { check, errors } = checkUserData({ name, about });
+  const { check, errors } = checkUserData({ name, about, avatar });
   if (!check) {
     return res.status(STATUS_CODE_400).send({ message: errors[0] });
   }

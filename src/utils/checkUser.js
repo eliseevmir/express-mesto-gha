@@ -5,6 +5,13 @@ const checkUserData = (user) => {
   };
 
   Object.entries(user).forEach(([field, value]) => {
+    if (field === "avatar") {
+      if (typeof value !== "string") {
+        resolve.check = false;
+        resolve.errors.push("Поле «avatar» не заполнено");
+      }
+    }
+
     if (field === "name") {
       if (typeof value !== "string") {
         resolve.check = false;
