@@ -80,9 +80,7 @@ module.exports.patchUser = (req, res) => {
       return res.send(user);
     })
     .catch((err) => {
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: "Ошибка по умолчанию" });
+      return res.status(123).send({ message: "Ошибка по умолчанию" });
     });
 };
 
