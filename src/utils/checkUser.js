@@ -6,6 +6,10 @@ const checkUserData = (user) => {
 
   Object.entries(user).forEach(([field, value]) => {
     if (field === "name") {
+      if (typeof value !== "string") {
+        resolve.check = false;
+        resolve.errors.push("Поле name не заполнено");
+      }
       if (value.length > 30) {
         resolve.check = false;
         resolve.errors.push("Длина поля name не должна превышать 30 символов");
@@ -17,6 +21,11 @@ const checkUserData = (user) => {
     }
 
     if (field === "about") {
+      if (typeof value !== "string") {
+        resolve.check = false;
+        resolve.errors.push("Поле about не заполнено");
+      }
+
       if (value.length > 30) {
         resolve.check = false;
         resolve.errors.push("Длина поля about не должна превышать 30 символов");
@@ -29,7 +38,6 @@ const checkUserData = (user) => {
       }
     }
   });
-  console.log(resolve);
   return resolve;
 };
 

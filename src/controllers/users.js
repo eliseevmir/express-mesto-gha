@@ -6,12 +6,13 @@ const {
   STATUS_CODE_400,
   STATUS_CODE_404,
   STATUS_CODE_500,
+  STATUS_CODE_201,
 } = require("../utils/constants");
 
 module.exports.getUsers = async (req, res) => {
   try {
     const users = await User.find({});
-    return res.send({ users });
+    return res.send(users);
   } catch (err) {
     return res.status(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
   }
@@ -25,7 +26,7 @@ module.exports.getUser = (req, res) => {
           .status(STATUS_CODE_404)
           .send({ message: "Пользователь по указанному _id не найден" });
       }
-      return res.send({ user });
+      return res.send(user);
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
@@ -47,7 +48,7 @@ module.exports.createUser = (req, res) => {
 
   User.create({ name, about, avatar })
     .then((user) => {
-      return res.send({ user });
+      return res.status(STATUS_CODE_201).send(user);
     })
     .catch((err) => {
       console.error(err);
@@ -76,7 +77,7 @@ module.exports.patchUser = (req, res) => {
           .status(STATUS_CODE_404)
           .send({ message: "Пользователь с указанным _id не найден" });
       }
-      return res.send({ user });
+      return res.send(user);
     })
     .catch((err) => {
       return res

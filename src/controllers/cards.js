@@ -50,7 +50,7 @@ module.exports.deleteCard = (req, res) => {
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return res
-          .status(STATUS_CODE_404)
+          .status(STATUS_CODE_400)
           .send({ message: "Данные введенны некорректно" });
       }
     });
