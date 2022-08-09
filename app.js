@@ -21,6 +21,9 @@ app.use((req, res, next) => {
 
 app.use("/", routerUsers);
 app.use("/", routerCards);
+app.use((req, res) => {
+  res.status(404).send({ message: "Роут не найден" });
+});
 
 app.listen(PORT, (err) => {
   if (err) {

@@ -40,12 +40,19 @@ module.exports.postCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
+      if (!card) {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Карточка с указанным _id не найдена" });
+      }
       return res.send({ card });
     })
     .catch((err) => {
-      return res
-        .status(STATUS_CODE_404)
-        .send({ message: "Карточка с указанным _id не найдена" });
+      if (err instanceof mongoose.Error.CastError) {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Данные введенны некорректно" });
+      }
     });
 };
 
@@ -56,13 +63,18 @@ module.exports.putLikeCard = (req, res) => {
     { new: true }
   )
     .then((card) => {
+      if (!card) {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Карточка по указанному id не найдена" });
+      }
       return res.send({ card });
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err instanceof mongoose.Error.CastError) {
         return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Передан несуществующий _id карточки" });
+          .status(STATUS_CODE_400)
+          .send({ message: "Данные введенны некорректно" });
       }
       return res
         .status(STATUS_CODE_500)
@@ -77,13 +89,18 @@ module.exports.putDislikeCard = (req, res) => {
     { new: true }
   )
     .then((card) => {
+      if (!card) {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: "Карточка по указанному id не найдена" });
+      }
       return res.send({ card });
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err instanceof mongoose.Error.CastError) {
         return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Передан несуществующий _id карточки" });
+          .status(STATUS_CODE_400)
+          .send({ message: "Данные введенны некорректно" });
       }
       return res
         .status(STATUS_CODE_500)
