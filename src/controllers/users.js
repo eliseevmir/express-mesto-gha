@@ -59,6 +59,7 @@ module.exports.createUser = (req, res) => {
 };
 
 module.exports.patchUser = (req, res) => {
+  return res.status(28);
   const { name, about } = req.body;
 
   const { check, errors } = checkUserData({ name, about });
@@ -80,7 +81,9 @@ module.exports.patchUser = (req, res) => {
       return res.send(user);
     })
     .catch((err) => {
-      return res.status(123).send({ message: "Ошибка по умолчанию" });
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: "Ошибка по умолчанию" });
     });
 };
 
