@@ -19,11 +19,15 @@ const checkUserData = (user) => {
       }
       if (value.length > 30) {
         resolve.check = false;
-        resolve.errors.push("Длина поля «name» не должна превышать 30 символов");
+        resolve.errors.push(
+          "Длина поля «name» не должна превышать 30 символов"
+        );
       }
       if (value.length < 3) {
         resolve.check = false;
-        resolve.errors.push("Длина поля «name» не должна быть меньше 2 символов");
+        resolve.errors.push(
+          "Длина поля «name» не должна быть меньше 2 символов"
+        );
       }
     }
 
@@ -35,7 +39,9 @@ const checkUserData = (user) => {
 
       if (value.length > 30) {
         resolve.check = false;
-        resolve.errors.push("Длина поля «about» не должна превышать 30 символов");
+        resolve.errors.push(
+          "Длина поля «about» не должна превышать 30 символов"
+        );
       }
       if (value.length < 3) {
         resolve.check = false;
