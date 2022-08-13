@@ -39,12 +39,8 @@ module.exports.postCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(new Error("Карточка с указанным _id не найдена"))
     .then((card) => {
-      if (!card) {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Карточка с указанным _id не найдена" });
-      }
       return res.send({ card });
     })
     .catch((err) => {
@@ -52,6 +48,9 @@ module.exports.deleteCard = (req, res) => {
         return res
           .status(STATUS_CODE_400)
           .send({ message: "Данные введенны некорректно" });
+      }
+      if (err instanceof Error) {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
       }
     });
 };
@@ -62,12 +61,8 @@ module.exports.putLikeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
+    .orFail(new Error("Карточка по указанному id не найдена"))
     .then((card) => {
-      if (!card) {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Карточка по указанному id не найдена" });
-      }
       return res.send({ card });
     })
     .catch((err) => {
@@ -75,6 +70,9 @@ module.exports.putLikeCard = (req, res) => {
         return res
           .status(STATUS_CODE_400)
           .send({ message: "Данные введенны некорректно" });
+      }
+      if (err instanceof Error) {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
       }
       return res
         .status(STATUS_CODE_500)
@@ -88,12 +86,8 @@ module.exports.putDislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
+    .orFail(new Error("Карточка по указанному id не найдена"))
     .then((card) => {
-      if (!card) {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Карточка по указанному id не найдена" });
-      }
       return res.send({ card });
     })
     .catch((err) => {
@@ -101,6 +95,9 @@ module.exports.putDislikeCard = (req, res) => {
         return res
           .status(STATUS_CODE_400)
           .send({ message: "Данные введенны некорректно" });
+      }
+      if (err instanceof Error) {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
       }
       return res
         .status(STATUS_CODE_500)

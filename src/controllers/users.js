@@ -20,12 +20,8 @@ module.exports.getUsers = async (req, res) => {
 
 module.exports.getUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(new Error("Пользователь по указанному _id не найден"))
     .then((user) => {
-      if (!user) {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Пользователь по указанному _id не найден" });
-      }
       return res.send(user);
     })
     .catch((err) => {
@@ -34,6 +30,11 @@ module.exports.getUser = (req, res) => {
           .status(STATUS_CODE_400)
           .send({ message: "Данные введены некорректно" });
       }
+
+      if (err instanceof Error) {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
+      }
+
       return res(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
     });
 };
@@ -71,15 +72,14 @@ module.exports.patchUser = (req, res) => {
     { name, about },
     { new: true, runValidators: true }
   )
+    .orFail(new Error("Пользователь с указанным _id не найден"))
     .then((user) => {
-      if (!user) {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: "Пользователь с указанным _id не найден" });
-      }
       return res.send(user);
     })
     .catch((err) => {
+      if (err instanceof Error) {
+        return res.status(STATUS_CODE_404).send({ message: err.message });
+      }
       return res
         .status(STATUS_CODE_500)
         .send({ message: "Ошибка по умолчанию" });
