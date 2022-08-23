@@ -1,4 +1,5 @@
 const Card = require("../models/card");
+const ForbiddenError = require("../errors/ForbiddenError");
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -25,7 +26,7 @@ module.exports.deleteCard = (req, res, next) => {
       const owner = card.owner.valueOf();
 
       if (owner !== req.user._id) {
-        throw new Error("Карточка добавлена другим пользователем");
+        throw new ForbiddenError("Карточка добавлена другим пользователем");
       }
 
       Card.findByIdAndRemove(req.params.cardId).then((card) => {

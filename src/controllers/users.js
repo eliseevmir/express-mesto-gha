@@ -5,6 +5,8 @@ require("dotenv").config();
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 const { STATUS_CODE_200, STATUS_CODE_201 } = require("../utils/constants");
+const NotFoundError = require("../errors/NotFoundError");
+const UnAuthorizedError = require("../errors/UnAuthorized");
 
 module.exports.getUsers = async (req, res, next) => {
   try {
@@ -17,7 +19,7 @@ module.exports.getUsers = async (req, res, next) => {
 
 module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
-    .orFail(new Error("Пользователь по указанному _id не найден"))
+    .orFail(new NotFoundError("Пользователь по указанному _id не найден"))
     .then((user) => {
       return res.send(user);
     })
@@ -29,7 +31,8 @@ module.exports.createUser = (req, res, next) => {
   return bcrypt.hash(password, 10).then((hash) => {
     return User.create({ name, about, avatar, email, password: hash })
       .then((user) => {
-        return res.status(STATUS_CODE_201).send(user);
+        const { name, about, avatar, email } = user;
+        return res.status(STATUS_CODE_201).send({ name, about, avatar, email });
       })
       .catch(next);
   });
@@ -71,14 +74,18 @@ module.exports.login = (req, res, next) => {
     .then((user) => {
       if (!user) {
         return Promise.reject(
-          new Error("Пользователь не найден или введен неверный пароль")
+          new UnAuthorizedError(
+            "Пользователь не найден или введен неверный пароль"
+          )
         );
       }
 
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
           return Promise.reject(
-            new Error("Пользователь не найден или введен неверный пароль")
+            new UnAuthorizedError(
+              "Пользователь не найден или введен неверный пароль"
+            )
           );
         }
         const payload = { _id: user._id };

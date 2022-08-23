@@ -14,6 +14,7 @@ const { PORT = 3000 } = process.env;
 const {
   STATUS_CODE_400,
   STATUS_CODE_404,
+  STATUS_CODE_409,
   STATUS_CODE_500,
 } = require("./src/utils/constants");
 const createUserSchema = require("./src/schemaValidator/createUser.js");
@@ -49,19 +50,21 @@ app.use(errors());
 
 app.use((err, req, res, next) => {
   if (err instanceof mongoose.Error.CastError) {
-    return res
-      .status(STATUS_CODE_400)
-      .send({ message: "Данные введены некорректно" });
+    return res.status(STATUS_CODE_400).send({ message: err.message });
   }
 
   if (err instanceof mongoose.Error.ValidationError) {
-    return res.status(STATUS_CODE_400).send({
-      message: "Переданы некорректные данные",
-    });
+    return res.status(STATUS_CODE_400).send({ message: err.message });
+  }
+
+  if (err.code === 11000) {
+    return res.status(STATUS_CODE_409).send({ message: err.message });
   }
 
   if (err instanceof Error) {
-    return res.status(STATUS_CODE_404).send({ message: err.message });
+    return res
+      .status(err.statusCode || STATUS_CODE_404)
+      .send({ message: err.message });
   }
 
   return res.status(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
