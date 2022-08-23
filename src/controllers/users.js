@@ -1,65 +1,55 @@
 const User = require("../models/user");
-const mongoose = require("mongoose");
 const checkUserData = require("../utils/checkUser");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
+const { NODE_ENV, JWT_SECRET } = process.env;
 const {
   STATUS_CODE_400,
-  STATUS_CODE_404,
-  STATUS_CODE_500,
+  STATUS_CODE_200,
   STATUS_CODE_201,
 } = require("../utils/constants");
 
-module.exports.getUsers = async (req, res) => {
+module.exports.getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
     return res.send(users);
   } catch (err) {
-    return res.status(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
+    next(err);
   }
 };
 
-module.exports.getUser = (req, res) => {
+module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new Error("Пользователь по указанному _id не найден"))
     .then((user) => {
       return res.send(user);
     })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return res
-          .status(STATUS_CODE_400)
-          .send({ message: "Данные введены некорректно" });
-      }
-
-      if (err instanceof Error) {
-        return res.status(STATUS_CODE_404).send({ message: err.message });
-      }
-
-      return res(STATUS_CODE_500).send({ message: "Ошибка по умолчанию" });
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const { name, about, avatar, email, password } = req.body;
 
-  const { check, errors } = checkUserData({ name, about, avatar });
+  const { check, errors } = checkUserData({
+    name,
+    about,
+    avatar,
+  });
   if (!check) {
     return res.status(STATUS_CODE_400).send({ message: errors[0] });
   }
-
-  User.create({ name, about, avatar })
-    .then((user) => {
-      return res.status(STATUS_CODE_201).send(user);
-    })
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: "Ошибка по умолчанию" });
-    });
+  return bcrypt.hash(password, 10).then((hash) => {
+    return User.create({ name, about, avatar, email, password: hash })
+      .then((user) => {
+        return res.status(STATUS_CODE_201).send(user);
+      })
+      .catch(next);
+  });
 };
 
-module.exports.patchUser = (req, res) => {
+module.exports.patchUser = (req, res, next) => {
   const { name, about } = req.body;
 
   const { check, errors } = checkUserData({ name, about });
@@ -76,39 +66,60 @@ module.exports.patchUser = (req, res) => {
     .then((user) => {
       return res.send(user);
     })
-    .catch((err) => {
-      if (err instanceof Error) {
-        return res.status(STATUS_CODE_404).send({ message: err.message });
-      }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: "Ошибка по умолчанию" });
-    });
+    .catch(next);
 };
 
-module.exports.patchUserAvatar = (req, res) => {
+module.exports.patchUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     { new: true, runValidators: true }
   )
+    .orFail(new Error("Пользователь с указанным _id не найден"))
     .then((user) => {
-      if (!user) {
-        res
-          .status(STATUS_CODE_404)
-          .send({ message: "Пользователь с указанным _id не найден" });
-      }
       return res.send({ user });
     })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.CastError) {
-        return res.status(STATUS_CODE_400).send({
-          message: "Переданы некорректные данные при обновлении аватара",
-        });
+    .catch(next);
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .select("+password")
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(
+          new Error("Пользователь не найден или введен неверный пароль")
+        );
       }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: "Ошибка по умолчанию" });
-    });
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          return Promise.reject(
+            new Error("Пользователь не найден или введен неверный пароль")
+          );
+        }
+        const payload = { _id: user._id };
+        const token = jwt.sign(
+          payload,
+          NODE_ENV === "production" ? JWT_SECRET : "some-secret-key"
+        );
+
+        res.status(STATUS_CODE_200).send({ token });
+      });
+    })
+    .catch(next);
+};
+
+module.exports.userMe = (req, res, next) => {
+  const { _id } = req.user;
+
+  User.findOne({ _id })
+    .orFail(new Error("Пользователь с указанным id не найден"))
+    .then((user) => {
+      res.status(STATUS_CODE_200).send(user);
+    })
+    .catch(next);
 };
