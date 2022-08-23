@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { LINKREGEXP } = require("../utils/constants");
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -10,10 +11,7 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
-    validate: [
-      /https?:\/\/(w{3})?\.?[0-9a-z]*[\/\.-]*[0-9a-z]*[\/\.-]*[0-9a-z]*[\/\.-]*[0-9a-z]*[\/\.-]*[0-9a-z]*[\/\.-]*/gm,
-      "Некорректная ссылка",
-    ],
+    validate: [new RegExp(LINKREGEXP, "g"), "Некорректная ссылка"],
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,

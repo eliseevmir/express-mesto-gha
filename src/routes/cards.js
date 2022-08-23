@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const { celebrate, Joi } = require("celebrate");
 const {
   getCards,
   postCard,
@@ -7,20 +6,13 @@ const {
   putLikeCard,
   putDislikeCard,
 } = require("../controllers/cards");
+const reqParamsCardIdSchema = require("../schemaValidator/reqParamsCardId.js");
+const postCardsSchema = require("../schemaValidator/postCards.js");
 
 router.get("/cards", getCards);
-router.post(
-  "/cards",
-  celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().required().min(2).max(30),
-      link: Joi.string().required(),
-    }),
-  }),
-  postCard
-);
-router.delete("/cards/:cardId", deleteCard);
-router.put("/cards/:cardId/likes", putLikeCard);
-router.delete("/cards/:cardId/likes", putDislikeCard);
+router.post("/cards", postCardsSchema, postCard);
+router.delete("/cards/:cardId", reqParamsCardIdSchema, deleteCard);
+router.put("/cards/:cardId/likes", reqParamsCardIdSchema, putLikeCard);
+router.delete("/cards/:cardId/likes", reqParamsCardIdSchema, putDislikeCard);
 
 module.exports = router;

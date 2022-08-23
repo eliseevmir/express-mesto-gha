@@ -1,15 +1,10 @@
 const User = require("../models/user");
-const checkUserData = require("../utils/checkUser");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const { NODE_ENV, JWT_SECRET } = process.env;
-const {
-  STATUS_CODE_400,
-  STATUS_CODE_200,
-  STATUS_CODE_201,
-} = require("../utils/constants");
+const { STATUS_CODE_200, STATUS_CODE_201 } = require("../utils/constants");
 
 module.exports.getUsers = async (req, res, next) => {
   try {
@@ -31,15 +26,6 @@ module.exports.getUser = (req, res, next) => {
 
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body;
-
-  const { check, errors } = checkUserData({
-    name,
-    about,
-    avatar,
-  });
-  if (!check) {
-    return res.status(STATUS_CODE_400).send({ message: errors[0] });
-  }
   return bcrypt.hash(password, 10).then((hash) => {
     return User.create({ name, about, avatar, email, password: hash })
       .then((user) => {
@@ -51,12 +37,6 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.patchUser = (req, res, next) => {
   const { name, about } = req.body;
-
-  const { check, errors } = checkUserData({ name, about });
-  if (!check) {
-    return res.status(STATUS_CODE_400).send({ message: errors[0] });
-  }
-
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },

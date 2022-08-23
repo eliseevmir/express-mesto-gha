@@ -16,6 +16,8 @@ const {
   STATUS_CODE_404,
   STATUS_CODE_500,
 } = require("./src/utils/constants");
+const createUserSchema = require("./src/schemaValidator/createUser.js");
+const loginUserSchema = require("./src/schemaValidator/loginUser.js");
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -32,8 +34,8 @@ mongoose
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post("/signin", login);
-app.post("/signup", createUser);
+app.post("/signin", loginUserSchema, login);
+app.post("/signup", createUserSchema, createUser);
 
 app.use(auth);
 app.use("/", routerUsers);
