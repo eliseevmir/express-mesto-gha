@@ -7,6 +7,11 @@ module.exports = celebrate({
       'string.pattern.base': 'Некорректный email',
       'any.required': 'Email обязателен',
     }),
-    password: Joi.string().required(),
+    password: Joi.string().required()
+      .messages({
+        'string.base': 'Необходимо ввести пароль',
+        'string.empty': 'Поле не должно быть пустым',
+        'any.required': 'Пароль обязателен',
+      }),
   }),
 });

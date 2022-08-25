@@ -43,12 +43,12 @@ module.exports.createUser = (req, res, next) => {
   })
     .then((user) => {
       // eslint-disable-next-line no-shadow
-      const { password, ...userData } = user;
+      const { password, ...userData } = user._doc;
       return res.status(STATUS_CODE_201).send(userData);
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return res.status(STATUS_CODE_409).send({ message: err.message });
+        return res.status(STATUS_CODE_409).send({ message: 'Пользователь с указанным email существует' });
       }
       return next(err);
     }));

@@ -6,7 +6,7 @@
     "debug": "node --inspect=9222 ./app.js ",
     "start": "node ./app.js",
     "dev": "nodemon app.js",
-    "lint": "npx eslint --fix ."
+    "lint": "npx eslint ."
   },
   "keywords": [],
   "author": "",
