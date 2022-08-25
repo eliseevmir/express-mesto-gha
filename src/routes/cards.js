@@ -1,18 +1,18 @@
-const router = require("express").Router();
+const router = require('express').Router();
 const {
   getCards,
   postCard,
   deleteCard,
   putLikeCard,
   putDislikeCard,
-} = require("../controllers/cards");
-const reqParamsCardIdSchema = require("../schemaValidator/reqParamsCardId.js");
-const postCardsSchema = require("../schemaValidator/postCards.js");
+} = require('../controllers/cards');
+const reqParamsCardIdSchema = require('../schemaValidator/reqParamsCardId');
+const postCardsSchema = require('../schemaValidator/postCards');
 
-router.get("/cards", getCards);
-router.post("/cards", postCardsSchema, postCard);
-router.delete("/cards/:cardId", reqParamsCardIdSchema, deleteCard);
-router.put("/cards/:cardId/likes", reqParamsCardIdSchema, putLikeCard);
-router.delete("/cards/:cardId/likes", reqParamsCardIdSchema, putDislikeCard);
+router.get('/cards', getCards);
+router.post('/cards', postCardsSchema, postCard);
+router.delete('/cards/:cardId', reqParamsCardIdSchema, deleteCard);
+router.put('/cards/:cardId/likes', reqParamsCardIdSchema, putLikeCard);
+router.delete('/cards/:cardId/likes', reqParamsCardIdSchema, putDislikeCard);
 
 module.exports = router;

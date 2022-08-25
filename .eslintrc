@@ -11,9 +11,7 @@
         },
         "ecmaVersion": "latest"
     },
-    "plugins": [
-        "react"
-    ],
+
     "rules": {
       "no-underscore-dangle": [
         "off",
