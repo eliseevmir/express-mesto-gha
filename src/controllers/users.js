@@ -8,11 +8,11 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const {
   STATUS_CODE_200,
   STATUS_CODE_201,
-  STATUS_CODE_409,
 } = require('../utils/constants');
 const NotFoundError = require('../errors/NotFoundError');
 const UnAuthorizedError = require('../errors/UnAuthorized');
 const BadRequestError = require('../errors/BadRequestError');
+const ConflictingRequestError = require('../errors/ConflictingRequestError');
 
 module.exports.getUsers = async (req, res, next) => {
   try {
@@ -48,7 +48,9 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return res.status(STATUS_CODE_409).send({ message: 'Пользователь с указанным email существует' });
+        next(new ConflictingRequestError('Пользователь с указанным email существует'));
+      } else if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError('Не вернные данные'));
       }
       return next(err);
     }));
@@ -65,9 +67,10 @@ module.exports.patchUser = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        throw new BadRequestError('Не вернные данные');
+        next(new BadRequestError('Не вернные данные'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -82,9 +85,10 @@ module.exports.patchUserAvatar = (req, res, next) => {
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        throw new BadRequestError('Не вернные данные');
+        next(new BadRequestError('Не вернные данные'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
